@@ -7,3 +7,4 @@ all:
 
 clean:
 	rm -f read main
+	clear
