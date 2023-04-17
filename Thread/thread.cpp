@@ -13,10 +13,9 @@
 
 const int SZ=256;
 
-using namespace std;
-
 int rand_num;
 bool s= false;
+bool is_even;
 
 void f_th(bool is_even, const char* ff) 
 {
@@ -47,9 +46,9 @@ int main()
       rand_num= rand(); 
   		const char *ff1= "/tmp/ff1";
   		const char *ff2= "/tmp/ff2";
-      bool is_even= rand_num%2;
-  		thread th1(&f_th, is_even, ff1);
-  		thread th2(&f_th, is_even, ff2);
+  		is_even= rand_num%2;
+      std::thread th1(f_th, std::ref(is_even), std::ref(ff1));
+  		std::thread th2(f_th, std::ref(is_even), std::ref(ff2));
   		th1.join();
   		th2.join();
 		  s= false;
