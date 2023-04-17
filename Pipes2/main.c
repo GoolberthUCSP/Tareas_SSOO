@@ -21,26 +21,24 @@ int main(void)
 	srand(time(0));
 	int rand_num= 0, n_b;
 	char buff[SZ];
-	char str[SZ];	
+	int fd[2], fdfifo;
+	pid_t id_odd, id_even;
 	const char *fn= "/tmp/myfifo";
 	while(1){
 		signal(SIGINT, sighandler);
 		if(s== 1){
 			rand_num= rand()%1000;
-       			int     fd[2], fd_f;
-       			pid_t   id_odd, id_even;
         		id_even= fork();
 			if(id_even == 0){
                 		//Even
                 		if(rand_num && !rand_num%2){
 					close(fd[0]);
                 			n_b= read(fd[0], buff, SZ);
-					buff[n_b]= 0;
 					printf("Even: %s\n", buff);
 					mkfifo(fn, 0666);
-					fd_f= open(fn, O_WRONLY);
-					write(fd_f, buff, strlen(buff)+1);
-                			close(fd_f);
+					fdfifo= open(fn, O_WRONLY);
+					write(fdfifo, buff, strlen(buff)+1);
+                			close(fdfifo);
 				}
 				return 0;
         		}
@@ -51,12 +49,11 @@ int main(void)
 					if(rand_num && rand_num%2){
 						close(fd[0]);
 						n_b= read(fd[0], buff, SZ);
-						buff[n_b]= 0;
 						printf("Odd: %s\n", buff);
 						mkfifo(fn, 0666);
-						fd_f= open(fn, O_WRONLY);
-						write(fd_f, buff, strlen(buff)+1);
-						close(fd_f);
+						fdfifo= open(fn, O_WRONLY);
+						write(fdfifo, buff, strlen(buff)+1);
+						close(fdfifo);
 					}
 					return 0;
 				}
@@ -65,9 +62,8 @@ int main(void)
 					rand_num= rand()%1000;
 					pipe(fd);
 					close(fd[1]);
-					sprintf(str, "%d", rand_num);
-					printf("%s\n", str);
-					write(fd[1], str, strlen(str)+1);
+					sprintf(buff, "%d", rand_num);
+					write(fd[1], buff, strlen(buff)+1);
 				}
 			}
 			s= 0;
