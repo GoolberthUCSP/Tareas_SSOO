@@ -19,8 +19,8 @@ int main(){
     char buff2[SZ];
     read(fd1, buff1, SZ);
     read(fd2, buff2, SZ);
-    cout<< "Is even: " << buff1<<endl;
-    cout<< "Is odd : " << buff2<<endl;
+    cout<< "E_received: " << buff1 <<endl;
+    cout<< "O_received: " << buff2 <<endl;
     close(fd1);
     close(fd2);
     return 0;
