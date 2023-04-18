@@ -23,15 +23,16 @@ void f_th(int n)
 {
   char buff[SZ];
   if (n==rand_num%2){
-    int num= (n==1)? rand_num*2 : rand_num*3;
+    int num= (n==1)? rand_num*5 : rand_num*7;
     *ff= (n==1)? even : odd;
     mkfifo(*ff, 0666);
     int fd= open(*ff, O_WRONLY);  
-    sprintf(buff, "%d-", num);
+    sprintf(buff, "%d", num);
     write(fd, buff, strlen(buff)+1);
     close(fd);
     unlink(*ff);
   }
+  printf("Rand: %d", rand_num);
 }
 
 void th(){
@@ -44,11 +45,11 @@ void sighandler(int signum=0){
 
 int main() 
 {
-  srand(time(NULL));
+  srand(time(0));
 	signal(SIGINT, sighandler);
   while(1){
 	  if (s){
-      rand_num= rand();
+      rand_num= rand()%1000;
       std::thread th1(f_th, 1);
   		std::thread th2(f_th, 0);
   		th1.join();
