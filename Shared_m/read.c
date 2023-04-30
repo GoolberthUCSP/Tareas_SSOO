@@ -6,7 +6,7 @@
 #include<sys/ipc.h>
 #include<string.h>
 
-#define MAXBUF 256
+#define MAXBUF 128
 bool s= true;
 
 void died(char *e){
@@ -24,25 +24,24 @@ int main(int argc, char *argv[]){
     if (argc != 2) return 1;
     char *n_exec= argv[1];
     key_t key= 1200;
-    struct buffer buff;
+    char *ptr;
     char op;
-    char *num;
+    int num;
     int shmid;
-    if ((shmid = shmget(key, sizeof(buff), IPC_CREAT | 0666)) < 0){
+    if ((shmid = shmget(key, MAXBUF, IPC_CREAT | 0666)) < 0){
         died("shmget");
     }
     //Message = operation + number
-    if ((buff = (struct buffer *)shmat(shmid, NULL, 0)) == (struct buffer *) -1){
+    if ((ptr = (char *)shmat(shmid, NULL, 0)) == (char *) -1){
         died("shmat");
     }
-    //Get operation
-    op= buff->mtext[0];
-    //Get number
-    num= strtok(buff->mtext, &op);
-    //Print in format N_execution - operation - number
-    printf("%s \t %c \t %s\n", n_exec, op, num);
-    if (shmdt(buff) == -1){
-        died("shmdt");
-    }
+    while(*ptr=='#') sleep(1);
+    //block shared memory
+    *ptr= '#';
+    op= *ptr;
+    num= atoi(ptr+1);
+    printf("%d\t%c\t%d\n", n_exec, op, num);
     return 0;
+    //Unblock shared memory
+    *ptr= op;
 }
