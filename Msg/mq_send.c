@@ -36,14 +36,15 @@ int main()
   char oper[5]= {'+','-','*','/'};
   int rand_num;
   int msqid;
-  char rand_oper= oper[((int)rand()%4)];
+  char rand_oper;
   key_t key= 1200;
   size_t buflen;
-  int msgflg = 0666;
+  int msgflg = IPC_CREAT | 0666;
   struct msgbuf sbuf;
   while(1){
     if (s==1){
       rand_num= rand()%1000;
+      rand_oper= oper[rand()%4];
       if ((msqid = msgget(key, msgflg)) < 0)
         die("msgget()");
 
@@ -54,7 +55,7 @@ int main()
       if (msgsnd(msqid, &sbuf, buflen, IPC_NOWAIT) < 0)
         die("msgsnd");
       else
-        printf("Message sent");
+        printf("Message sent\n");
       s= 0;
     }
   }

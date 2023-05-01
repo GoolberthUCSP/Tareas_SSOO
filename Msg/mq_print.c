@@ -25,7 +25,7 @@ int main(int n, char* var[])
     char *exec= var[1];
     key_t key= 1234;
     struct msgbuf buff;
-    if ((msqid = msgget(key, 0666)) < 0)
+    if ((msqid = msgget(key, IPC_CREAT | 0666)) < 0)
       die("msgget()");
 
      //Receive an answer of message type 1.

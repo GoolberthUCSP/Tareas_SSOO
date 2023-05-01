@@ -29,7 +29,7 @@ int main()
     struct msgbuf buff;
     char op;
     size_t buflen;
-    int msgflg = 0666;
+    int msgflg = IPC_CREAT | 0666;
     if ((msqid = msgget(key, msgflg)) < 0)
       die("msgget()");
     //Receive an answer of message type 1.

@@ -5,19 +5,16 @@
 #include<sys/shm.h>
 #include<sys/ipc.h>
 #include<string.h>
+#include <stdbool.h>
 
-#define MAXBUF 128
+#define MAXBUF 20
+
 bool s= true;
 
 void died(char *e){
     perror(e);
     exit(1);
 }
-
-struct buffer{
-    long mtype;
-    char mtext[MAXBUF];
-};
 
 int main(int argc, char *argv[]){
     //Receive message and print in format N_execution - operation - number
@@ -35,13 +32,11 @@ int main(int argc, char *argv[]){
     if ((ptr = (char *)shmat(shmid, NULL, 0)) == (char *) -1){
         died("shmat");
     }
-    while(*ptr=='#') sleep(1);
-    //block shared memory
-    *ptr= '#';
+    while(*ptr=='#' || *ptr=='\0') sleep(1);
     op= *ptr;
+    *ptr= '#'; //block shared memory
     num= atoi(ptr+1);
-    printf("%d\t%c\t%d\n", n_exec, op, num);
+    printf("%s\t%c\t%d\n", n_exec, op, num);
+    *ptr= '\0'; //Indicate than the reader has finished
     return 0;
-    //Unblock shared memory
-    *ptr= op;
 }

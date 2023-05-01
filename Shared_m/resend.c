@@ -6,10 +6,11 @@
 #include<sys/ipc.h>
 #include<signal.h>
 #include<string.h>
-#include<map.h>
+#include <stdbool.h>
 
-#define MAXBUF 128
-bool s= true;
+#define MAXBUF 20
+
+bool s= false;
 
 void died(char *e){
     perror(e);
@@ -17,9 +18,7 @@ void died(char *e){
 }
 
 void sig_handler(int signo){
-    if(signo == SIGINT){
-        s = false;
-    }
+    s = true;
 }
 
 struct buffer{
@@ -28,55 +27,60 @@ struct buffer{
 };
 
 int main(int n, char *args[]){
-    if(n!=2) exit(1);
-    int oper= atoi(args[1]);
+    if(n!=2) died("Wrong number of arguments");
+    int oper_id= atoi(args[1])%4;
     signal(SIGINT, sig_handler);
     //Receive message and resend to other process
     int shmid;
-    key_t keys[4]= {1233, 1234, 1235, 1236};
-    key_t key= keys[oper];
-    key_t key2= 1200;
-    char *ptr1, *ptr2, *tmp, *rand_num;
-    char op;
+    key_t keys[4]= {1201, 1202, 1203, 1204};
+    key_t key_read= keys[oper_id];
+    key_t key_send= 1200;
+    char *ptr_read, *ptr_send, rand_num[MAXBUF];
+    char oper;
     int a= 1;
     int r_num;
+    //Getting shared_memory of the receiver
+    if((shmid = shmget(key_read, MAXBUF, IPC_CREAT | 0666)) < 0){
+        died("shmget");
+    }
+    if((ptr_read = shmat(shmid, NULL, 0)) == (char *) -1){
+        died("shmat");
+    }
+    //Getting shared_memory of the sender
+    if((shmid = shmget(key_send, MAXBUF, IPC_CREAT | 0666)) < 0){
+        died("shmget");
+    }
+    if((ptr_send = shmat(shmid, NULL, 0)) == (char *) -1){
+        died("shmat");
+    }
+    *ptr_send= '\0';
     while(true){
         if (s){
-            if((shmid = shmget(key, MAXBUF, IPC_CREAT | 0666)) < 0){
-                died("shmget");
+            while(*ptr_read=='#' || *ptr_read=='\0'){
+                sleep(1);
+                printf("Waiting sender...\n");
             }
-            //Read message
-            if((ptr1 = (char *)shmat(shmid, NULL, 0)) == (char *) -1){
-                died("shmat");
+            oper= ptr_read[0];
+            *ptr_read= '#';//Block the reader shared_memory
+            r_num= atoi(ptr_read+1);
+            printf("received: %c\t%s\n", oper, rand_num);
+            if (oper=='+') r_num= r_num+7;
+            else if (oper=='-') r_num= r_num-5;
+            else if (oper=='*') r_num= r_num*2;
+            else if (oper=='/') r_num= r_num/2;
+            sprintf(rand_num, "%d", r_num);
+            *ptr_read= '\0';//Indicate than the reader can read again
+
+            while(*ptr_send=='#'){
+                sleep(1);
+                printf("Waiting reader...\n");
             }
-            //Send message
-            if((shmid = shmget(key2, MAXBUF, IPC_CREAT | 0666)) < 0){
-                died("shmget");
-            }
-            if((ptr2 = (char *)shmat(shmid, NULL, 0)) == (char *) -1){
-                died("shmat");
-            }
-            while(*ptr1=='#') sleep(1);
-            op= *ptr1;
-            *ptr1= '#';//Block the shared_memory
-            tmp= ptr1;
-            r_num= atoi(tmp+1);
-            if (op=='+') r_num= r_num+7;
-            else if (op=='-') r_num= r_num-5;
-            else if (op=='*') r_num= r_num*2;
-            else if (op=='/') r_num= r_num/3;
-            sprintf(rand_num, "%d\0", r_num);
-            tmp= ptr2;
-            while(*tmp=='#') sleep(1);
-            //Block the shared_memory
-            *tmp= '#';
-            int i=1;
-            for (; rand_num[i]!='\0'; i++)
-                *(tmp+i)= *rand_num[i];
-            printf("resent: %c %d\n", op, r_num)
+            *ptr_send= '#';//Block the sender shared_memory
+            //copy r_num to ptr_send from position 1 and add '\0' at the end
+            strcpy(ptr_send+1, rand_num);
+            printf("resent: %c\t%d\n", oper, r_num);
+            *ptr_send= oper;//Unblock the sender shared_memory
             s = false;
-            *ptr1= op;//Unblock the shared_memory
-            *tmp= op;//Unblock the shared_memory
         }
     }
 }

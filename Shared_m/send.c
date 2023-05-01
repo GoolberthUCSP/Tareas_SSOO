@@ -6,11 +6,12 @@
 #include<sys/ipc.h>
 #include<signal.h>
 #include<string.h>
-#include<random>
 #include<time.h>
+#include <stdbool.h>
 
-#define MAXBUF 128
-bool s= true;
+#define MAXBUF 20
+
+bool s= false;
 
 void died(char *e){
     perror(e);
@@ -18,44 +19,50 @@ void died(char *e){
 }
 
 void sig_handler(int signo){
-    if(signo == SIGINT){
-        s = false;
-    }
+    s = true;
 }
 
 int main(){
     signal(SIGINT, sig_handler);
     srand(time(NULL));
     int shmid;
-    int rand_num;
+    int rand_num, r_op;
     char oper[5]= {'+','-','*','/'};
     char rand_oper;
-    key_t key= 1234;
-	char *ptr, *r_num;
+    key_t keys[4]= {1201, 1202, 1203, 1204};
+    key_t key;
+	char r_num[MAXBUF];
+    char *ptrs[4], *ptr;
+    for (int i=0; i<4; i++){
+        if((shmid = shmget(keys[i], MAXBUF, IPC_CREAT | 0666)) < 0){
+            died("shmget");
+        }
+        if((ptrs[i] = (char *)shmat(shmid, NULL, 0)) == (char *) -1){
+            died("shmat");
+        }
+        //Block the shared_memory
+        *ptrs[i]= '\0';
+        *(ptrs[i]+1)= '\0';
+    }
     while(true){
         if (s){
-            rand_oper= oper[rand()%4];
-            rand_num= rand()%1000;
+            r_op= rand()%4;
+            ptr= ptrs[r_op];
+            while(*ptr=='#'){
+                sleep(1);
+                printf("Waiting reader...\n");
+            }
+            *ptr= '#'; //Block other process
+            rand_oper= oper[r_op];
+            rand_num= (rand()%900) + 100;
+            key= keys[r_op];
             //Send message
-            sprintf(buff.mtext, "%c%d", rand_oper, rand_num);
-            if((shmid = shmget(key, MAXBUF, IPC_CREAT | 0666)) < 0){
-                died("shmget");
-            }
-            if((ptr = (char *)shmat(shmid, NULL, 0)) == (char *) -1){
-                died("shmat");
-            }
-            sprintf(r_num, "%d\0", rand_num);
-            while(*ptr=='#') sleep(1);
-            //Block other process
-            *ptr= '#';
-            int i=1;
-            for (; r_num[i]!='\0'; i++)
-                *(ptr+i)= *r_num[i];
-            *(ptr+i)= NULL;  
-            printf("sent: %c %d\n", rand_oper, rand_num);
+            sprintf(r_num, "%d", rand_num);
+            //copy r_num to ptr from position 1 and add '\0' at the end
+            strcpy(ptr+1, r_num);
+            *ptr= rand_oper; //Unblock other process
             s= false;
-            //Unblock other process
-            *ptr= rand_oper;
+            printf("Sent: %s to Sm ID: %d\n", ptr, key);
         }
     }
 
