@@ -63,7 +63,7 @@ int main(int n, char *args[]){
 
             putchar(data[index]);
             fflush(stdout);
-            usleep(50000);
+            usleep(80000);
             putchar(data[index]);
             fflush(stdout);
 
