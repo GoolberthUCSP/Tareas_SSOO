@@ -23,5 +23,8 @@ lsmod
 sudo rmmod hello-1
 
 cd var/log
+
+dmesg | tail -1
+
 tail -f syslog
 */
