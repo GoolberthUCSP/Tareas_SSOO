@@ -2,7 +2,7 @@
 #include <linux/kernel.h> /* Needed for KERN_INFO */
 
 int init_module(void){
-    printk(KERN_INFO "Hello world 1.\n");
+    printk(KERN_INFO "Hello Fredy.\n");
     /*
     * A non 0 return means init_module failed; module can't be loaded.
     */
@@ -10,7 +10,7 @@ int init_module(void){
 }
 
 void cleanup_module(void){
-    printk(KERN_INFO "Goodbye world 1.\n");
+    printk(KERN_INFO "Goodbye Fredy.\n");
 }
 
 MODULE_LICENSE("GPL");
