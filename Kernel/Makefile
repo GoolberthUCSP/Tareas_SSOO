@@ -1,6 +1,8 @@
-obj-m += hello.o
+obj-m+=prog.o
 
 all:
-	make -C /lib/modules/$(shell uname -r)/build M=$(shell pwd) modules
+	make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) modules
+	$(CC) prog.c -o prog
 clean:
-	make -C /lib/modules/$(shell uname -r)/build M=$(shell pwd) clean
+	make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) clean
+	rm prog
