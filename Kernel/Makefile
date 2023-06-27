@@ -1,8 +1,10 @@
-obj-m+=prog.o
+obj-m += ucsp.o
+
+KDIR := /lib/modules/$(shell uname -r)/build
+PWD := $(shell pwd)
 
 all:
-	make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) modules
-	$(CC) prog.c -o prog
+	$(MAKE) -C $(KDIR) M=$(PWD) modules
+
 clean:
-	make -C /lib/modules/$(shell uname -r)/build/ M=$(PWD) clean
-	rm prog
+	$(MAKE) -C $(KDIR) M=$(PWD) clean
