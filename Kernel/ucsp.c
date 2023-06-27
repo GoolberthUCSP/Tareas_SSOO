@@ -19,8 +19,8 @@ static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
 #define BUF_LEN 256
 
 static int Major; /* Major number assigned to our device driver */
-static int Device_Open = 0; /* Is device open?
-* Used to prevent multiple access to device */
+static int Device_Open = 0; // Is device open?
+
 static char msg[BUF_LEN]; /* The msg the device will give when asked */
 static char *msg_Ptr;
 static short  size_of_msg;
@@ -59,7 +59,7 @@ void cleanup_module(void)
 static int device_open(struct inode *inode, struct file *file)
 {
    static int counter = 0;
-   sprintf(msg, "I already told you %d times Hello world!\n", counter++);
+   //sprintf(msg, "I already told you %d times Hello world!\n", counter++);
    msg_Ptr = msg;
    try_module_get(THIS_MODULE);
    return SUCCESS;

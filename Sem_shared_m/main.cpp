@@ -55,8 +55,7 @@ int main(int n, char *args[]){
     }
     for (;;){
         if (*ptr==data[0]){
-            if (semop(id_sem, &p, 1) < 0)
-            {
+            if (semop(id_sem, &p, 1) < 0){
                 perror("semop p");
                 exit(13);
             }
@@ -70,8 +69,7 @@ int main(int n, char *args[]){
             *ptr= next[data[0]];
             index++;
 
-            if (semop(id_sem, &v, 1) < 0)
-            {
+            if (semop(id_sem, &v, 1) < 0){
                 perror("semop p");
                 exit(14);
             }
